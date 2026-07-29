@@ -46,7 +46,7 @@ export default function Customers() {
   }
 
   async function addFollowUp() {
-    if (!fuNote) { toast("Enter a note", "error"); return; }
+    if (!fuNote || selectedId == null) { toast("Enter a note", "error"); return; }
     try {
       await api("/customers/" + selectedId + "/follow-ups", { method: "POST", body: JSON.stringify({ note: fuNote, follow_up_date: fuDate || null }) });
       setFuNote(""); setFuDate("");
@@ -59,7 +59,7 @@ export default function Customers() {
     const f = detail.follow_ups || [];
     return (
       <>
-        <div className="page-header"><h1>Customer Details</h1><div className="page-header-actions"><button className="btn btn-secondary btn-sm" onClick={openEdit}><i className="fas fa-pen"></i> Edit</button></div></div>
+        <div className="page-header"><h1>Customer Details</h1><div className="page-header-actions"><button className="btn btn-secondary btn-sm" onClick={() => openEdit(selectedId!)}><i className="fas fa-pen"></i> Edit</button></div></div>
         <div className="page-body">
           <button className="detail-back" onClick={back}><i className="fas fa-arrow-left"></i> Back to Customers</button>
           <div className="detail-grid">

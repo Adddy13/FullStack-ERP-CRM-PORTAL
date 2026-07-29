@@ -11,10 +11,10 @@ export default function Dashboard() {
   async function load() {
     try {
       const [cR, pR, chR] = await Promise.all([api("/customers?limit=100"), api("/products?limit=100"), api("/challans?limit=20")]);
-      const cs = cR.customers || [], ps = pR.products || [], chs = chR.challans || [];
-      setStats({ ac: cs.filter(c => c.status === "Active").length, tp: ps.length, tc: chs.length, ls: ps.filter(p => p.current_stock <= p.min_stock_alert).length });
+      const cs: any[] = cR.customers || [], ps: any[] = pR.products || [], chs: any[] = chR.challans || [];
+      setStats({ ac: cs.filter((c: any) => c.status === "Active").length, tp: ps.length, tc: chs.length, ls: ps.filter((p: any) => p.current_stock <= p.min_stock_alert).length });
       setChallans(chs.slice(0, 5));
-      setFollowups(cs.filter(c => c.follow_up_date).sort((a: any, b: any) => new Date(a.follow_up_date) - new Date(b.follow_up_date)).slice(0, 5));
+      setFollowups(cs.filter((c: any) => c.follow_up_date).sort((a: any, b: any) => new Date(a.follow_up_date).getTime() - new Date(b.follow_up_date).getTime()).slice(0, 5));
     } catch (e: any) { console.error(e); }
   }
 

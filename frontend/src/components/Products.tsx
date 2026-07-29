@@ -43,6 +43,7 @@ export default function Products() {
   }
 
   async function saveStock(type: string, qty: number, reason: string) {
+    if (selectedId == null) return;
     try {
       await api("/products/" + selectedId + "/stock-movements", { method: "POST", body: JSON.stringify({ quantity: qty, movement_type: type, reason: reason || null }) });
       setStockModal(null); toast("Stock " + type + " " + qty); loadDetail(selectedId);
@@ -58,7 +59,7 @@ export default function Products() {
         <div className="page-header">
           <h1>Product Details</h1>
           <div className="page-header-actions">
-            <button className="btn btn-secondary btn-sm" onClick={openEdit}><i className="fas fa-pen"></i> Edit</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => openEdit(selectedId!)}><i className="fas fa-pen"></i> Edit</button>
             <button className="btn btn-secondary btn-sm" onClick={() => setStockModal("IN")}><i className="fas fa-arrow-up"></i> Stock IN</button>
             <button className="btn btn-danger btn-sm" onClick={() => setStockModal("OUT")}><i className="fas fa-arrow-down"></i> Stock OUT</button>
           </div>
