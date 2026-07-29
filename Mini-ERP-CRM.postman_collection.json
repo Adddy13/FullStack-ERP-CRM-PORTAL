@@ -1,0 +1,376 @@
+{
+  "info": {
+    "name": "Mini ERP + CRM Operations Portal",
+    "description": "API collection for the Mini ERP/CRM backend. Covers auth, customers, products, and sales challans.\n\nHow to use:\n1. Run 'Login' first (under Auth) with one of the seeded test accounts.\n2. The token is automatically saved to the {{token}} variable via a test script, so every other request will authenticate automatically.\n3. Test accounts (all use password: password123): admin, sales1, warehouse1, accounts1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://fullstack-erp-crm-portal.onrender.com/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "challanId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.token) {",
+                  "    pm.collectionVariables.set('token', data.token);",
+                  "    console.log('Token saved:', data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with a seeded test account. Automatically saves the JWT into {{token}} for use in all other requests.\n\nOther test accounts: sales1, warehouse1, accounts1 (all password123)"
+          }
+        },
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns the logged-in user's info based on the bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/customers?search=&status=&type=&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "matches name, business name, or mobile"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Lead | Active | Inactive"
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Retail | Wholesale | Distributor"
+                },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Paginated, searchable customer list. All query params are optional."
+          }
+        },
+        {
+          "name": "Get Customer By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{customerId}}"]
+            },
+            "description": "Returns full customer detail including follow-up history."
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rajesh Kumar\",\n  \"mobile\": \"9876543210\",\n  \"email\": \"rajesh@example.com\",\n  \"business_name\": \"Rajesh Traders\",\n  \"gst_number\": \"27AAACR5055K1ZG\",\n  \"customer_type\": \"Wholesale\",\n  \"address\": \"12 MG Road, Mumbai\",\n  \"status\": \"Lead\",\n  \"follow_up_date\": \"2026-08-15\",\n  \"notes\": \"Interested in bulk order\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            },
+            "description": "Requires Admin or Sales role. Only 'name' and 'customer_type' are strictly required; everything else can be omitted or null."
+          }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rajesh Kumar\",\n  \"mobile\": \"9876543210\",\n  \"email\": \"rajesh@example.com\",\n  \"business_name\": \"Rajesh Traders\",\n  \"gst_number\": \"27AAACR5055K1ZG\",\n  \"customer_type\": \"Wholesale\",\n  \"address\": \"12 MG Road, Mumbai\",\n  \"status\": \"Active\",\n  \"follow_up_date\": \"2026-08-20\",\n  \"notes\": \"Confirmed first order\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{customerId}}"]
+            },
+            "description": "Requires Admin or Sales role. Full replace — send all fields, same shape as Create."
+          }
+        },
+        {
+          "name": "Add Follow-up Note",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Called customer, will confirm order by Friday\",\n  \"follow_up_date\": \"2026-08-22\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}/follow-ups",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{customerId}}", "follow-ups"]
+            },
+            "description": "Requires Admin or Sales role. Also updates the customer's follow_up_date field."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?search=&category=&low_stock=false&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "matches name or SKU"
+                },
+                { "key": "category", "value": "" },
+                {
+                  "key": "low_stock",
+                  "value": "false",
+                  "description": "true = only items at/below min_stock_alert"
+                },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productId}}"]
+            },
+            "description": "Returns product detail plus its last 50 stock movements."
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"LED Bulb 9W\",\n  \"sku\": \"SKU-LED-009\",\n  \"category\": \"Electrical\",\n  \"unit_price\": 85,\n  \"current_stock\": 100,\n  \"min_stock_alert\": 15,\n  \"location\": \"Warehouse B\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            },
+            "description": "Requires Admin or Warehouse role. SKU must be unique."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"LED Bulb 9W\",\n  \"sku\": \"SKU-LED-009\",\n  \"category\": \"Electrical\",\n  \"unit_price\": 90,\n  \"current_stock\": 100,\n  \"min_stock_alert\": 15,\n  \"location\": \"Warehouse B\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productId}}"]
+            },
+            "description": "Requires Admin or Warehouse role."
+          }
+        },
+        {
+          "name": "Add Stock Movement (IN/OUT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50,\n  \"movement_type\": \"IN\",\n  \"reason\": \"Restock from supplier\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/stock-movements",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productId}}", "stock-movements"]
+            },
+            "description": "Requires Admin or Warehouse role. movement_type must be 'IN' or 'OUT'. OUT will be rejected with a 400 if it would take stock negative."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales Challans",
+      "item": [
+        {
+          "name": "List Challans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/challans?status=&customer_id=&search=&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["challans"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Draft | Confirmed | Cancelled"
+                },
+                { "key": "customer_id", "value": "" },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "matches challan number or customer name"
+                },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Challan By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/challans/{{challanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["challans", "{{challanId}}"]
+            },
+            "description": "Returns full challan detail including customer info and line items."
+          }
+        },
+        {
+          "name": "Create Challan (Draft)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"status\": \"Draft\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"product_name\": \"LED Bulb 9W\",\n      \"sku\": \"SKU-LED-009\",\n      \"unit_price\": 85,\n      \"quantity\": 10\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challans",
+              "host": ["{{baseUrl}}"],
+              "path": ["challans"]
+            },
+            "description": "Requires Admin or Sales role. Draft challans don't touch stock. Product snapshot fields (product_name, sku, unit_price) are stored as sent — this is intentional so historical challans stay accurate even if the product changes later."
+          }
+        },
+        {
+          "name": "Create Challan (Confirmed - reduces stock)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"status\": \"Confirmed\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"product_name\": \"LED Bulb 9W\",\n      \"sku\": \"SKU-LED-009\",\n      \"unit_price\": 85,\n      \"quantity\": 10\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challans",
+              "host": ["{{baseUrl}}"],
+              "path": ["challans"]
+            },
+            "description": "Same as above, but status Confirmed. Backend checks stock in a transaction and rejects with 400 if insufficient — try setting quantity higher than current stock to see the error handling."
+          }
+        },
+        {
+          "name": "Update Challan Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challans/{{challanId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["challans", "{{challanId}}", "status"]
+            },
+            "description": "Requires Admin or Sales role. status must be Draft, Confirmed, or Cancelled. Confirming a Draft reduces stock; cancelling a Confirmed challan restores it."
+          }
+        }
+      ]
+    }
+  ]
+}
